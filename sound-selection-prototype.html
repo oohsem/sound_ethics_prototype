@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Attune — Audio Wellness Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080d16;
+      --bg-card: rgba(14, 21, 35, 0.88);
+      --bg-card-border: rgba(120, 115, 245, 0.35);
+      --cyan-primary: #00e5ff;
+      --cyan-bright: #38bdf8;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: #12161f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text-main);
+      overflow-x: hidden;
+      padding: 20px 10px;
+    }
+
+    .prototype-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Floating Prototype Setup Button */
+    .dev-toggle-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(14, 21, 35, 0.95);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--cyan-primary);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+    .dev-toggle-btn:hover {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--cyan-primary);
+    }
+    .status-badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* iPhone Device Shell */
+    .device-frame {
+      width: 412px;
+      height: 860px;
+      background: #090e17;
+      border-radius: 46px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 8px #262c36, 0 0 0 9px #10141b;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .device-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .screen-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 90%, #152438 0%, #0d1522 55%, #080c14 100%);
+    }
+
+    /* Screen Transition Framework */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      padding: 52px 24px 34px 24px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar {
+      display: none;
+    }
+    .screen.active {
+      display: flex;
+      z-index: 10;
+    }
+
+    /* Attune Logo Component */
+    .brand-logo {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.6px;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-logo .brand-u {
+      position: relative;
+      display: inline-block;
+      color: #ffffff;
+    }
+    .brand-logo .brand-u::after {
+      content: '';
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #00e5ff;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      box-shadow: 0 0 6px #00e5ff;
+    }
+
+    /* Top Navigation bar */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      min-height: 40px;
+      margin-bottom: 6px;
+    }
+    .back-btn {
+      position: absolute;
+      left: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(22, 33, 52, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--cyan-primary);
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: rgba(0, 229, 255, 0.15);
+    }
+
+    .sub-tagline {
+      font-size: 13px;
+      color: var(--cyan-primary);
+      text-align: center;
+      margin-top: 4px;
+    }
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      color: #00e5ff;
+      margin-top: 4px;
+      margin-bottom: 22px;
+      letter-spacing: -0.3px;
+    }
+
+    /* Start Button */
+    .cta-button {
+      margin-top: auto;
+      width: 100%;
+      height: 58px;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #1fa2ff 0%, #12d8fa 50%, #2bf7c8 100%);
+      color: #041221;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 229, 255, 0.35);
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+    }
+    .cta-button.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+      filter: grayscale(0.8);
+      box-shadow: none;
+    }
+
+    /* Screen 3: Home */
+    #screen-home {
+      padding-top: 26px;
+      padding-bottom: 90px;
+      position: relative;
+    }
+    .home-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      width: 100%;
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .notification-pill {
+      position: absolute;
+      right: 88px;
+      top: -3px;
+      background: #ff4757;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+    }
+
+    /* Hexagon clusters */
+    .hex-cluster {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      margin: 0 auto;
+    }
+    .hex-card {
+      width: 82px;
+      height: 94px;
+      position: absolute;
+      background: linear-gradient(145deg, rgba(32, 48, 80, 0.75), rgba(16, 24, 44, 0.9));
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      filter: drop-shadow(0 0 6px rgba(115, 120, 255, 0.45));
+    }
+    .hex-card::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background: #111a2c;
+      z-index: 1;
+    }
+    .hex-card span {
+      position: relative;
+      z-index: 2;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .hex-card:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.8));
+    }
+    .hex-card:hover span {
+      color: #00e5ff;
+    }
+
+    .hex-1 { top: 6px; left: 24px; }
+    .hex-2 { top: 6px; left: 196px; }
+    .hex-3 { top: 6px; left: 282px; }
+    .hex-4 { top: 72px; left: 66px; }
+    .hex-5 { top: 72px; left: 152px; }
+    .hex-6 { top: 72px; left: 238px; }
+    .hex-7 { top: 138px; left: 110px; }
+
+    .hex-explore-cluster {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      margin: 0 auto;
+    }
+    .hex-e1 { top: 6px; left: 30px; }
+    .hex-e2 { top: 34px; left: 152px; }
+    .hex-e3 { top: 12px; left: 276px; }
+
+    /* Bottom Navbar */
+    .bottom-navbar {
+      position: absolute;
+      bottom: 20px;
+      left: 24px;
+      right: 24px;
+      height: 56px;
+      background: rgba(14, 21, 35, 0.95);
+      border-radius: 20px;
+      border: 1.5px solid rgba(135, 120, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #718096;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: #00e5ff;
+    }
+    .nav-icon-smile {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 229, 255, 0.15);
+      border: 1.5px solid #00e5ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Choice Cards */
+    .selection-cards-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 10px;
+      margin-bottom: auto;
+      z-index: 2;
+    }
+    .big-choice-card {
+      background: rgba(13, 20, 33, 0.92);
+      border: 1.5px solid rgba(130, 115, 255, 0.35);
+      border-radius: 24px;
+      padding: 34px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .big-choice-card:hover {
+      border-color: rgba(0, 229, 255, 0.6);
+      transform: translateY(-2px);
+    }
+    .big-choice-card.selected {
+      border: 2px solid #00e5ff;
+      background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.12) 0%, rgba(13, 20, 33, 0.95) 80%);
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+    }
+    .choice-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      color: #00e5ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choice-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #00e5ff;
+      margin-bottom: 6px;
+      letter-spacing: -0.4px;
+    }
+    .choice-subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    /* Accordion Sound Selection Screen */
+    .sound-categories-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+      z-index: 2;
+    }
+    .accordion-card {
+      background: rgba(14, 21, 35, 0.9);
+      border: 1.5px solid rgba(130, 115, 255, 0.35);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .accordion-card.expanded {
+      border-color: #00e5ff;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+    }
+    .accordion-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .category-icon {
+      color: #00e5ff;
+      display: flex;
+      align-items: center;
+    }
+    .cat-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #00e5ff;
+    }
+    .chevron-icon {
+      color: #00e5ff;
+      transition: transform 0.25s ease;
+    }
+    .accordion-card.expanded .chevron-icon {
+      transform: rotate(180deg);
+    }
+    .accordion-content {
+      display: none;
+      padding: 0 16px 14px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .accordion-card.expanded .accordion-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .sound-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .sound-row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .checkbox-bubble {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .checkbox-bubble.checked {
+      background: #00e5ff;
+      border-color: #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+    }
+    .sound-label {
+      font-size: 13px;
+      color: #f1f5f9;
+      font-weight: 500;
+    }
+    .preview-play-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: #00e5ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-play-btn.playing {
+      color: #ff4757;
+    }
+
+    /* Listening Screen */
+    #screen-listening {
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      padding-top: 36px;
+      padding-bottom: 34px;
+    }
+    .now-listening-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 1.5px;
+      margin-top: 15px;
+    }
+    .now-listening-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #00e5ff;
+      margin-top: 6px;
+      letter-spacing: -0.5px;
+    }
+    .listening-wave-wrapper {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ambient-glow {
+      position: absolute;
+      width: 280px;
+      height: 150px;
+      background: radial-gradient(ellipse, rgba(0, 210, 255, 0.25) 0%, rgba(30, 80, 200, 0.08) 60%, transparent 80%);
+      filter: blur(24px);
+      z-index: 1;
+    }
+    .listening-wave-wrapper svg {
+      width: 100%;
+      filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.5));
+    }
+    .listening-wave-wrapper.paused svg {
+      filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.2));
+      opacity: 0.5;
+    }
+    .listening-status-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .pulse-dot-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00e5ff;
+      box-shadow: 0 0 10px #00e5ff;
+      animation: pulseAnimation 2s infinite ease-in-out;
+    }
+    @keyframes pulseAnimation {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+    .listening-subtext {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .timer-countdown-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00e5ff;
+      background: rgba(0, 229, 255, 0.1);
+      padding: 4px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      margin-top: 4px;
+    }
+    .listening-control-bar {
+      width: 100%;
+      height: 72px;
+      background: rgba(14, 21, 35, 0.95);
+      border: 1.5px solid rgba(135, 120, 255, 0.45);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+    }
+    .control-side-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #00e5ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .play-pause-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #00e5ff;
+      color: #090e17;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+    }
+
+    /* Timer Modal Overlay */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      border-radius: 46px;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-sheet {
+      background: #0d1524;
+      border-top: 1.5px solid rgba(0, 229, 255, 0.4);
+      border-radius: 30px 30px 0 0;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #00e5ff;
+      text-align: center;
+    }
+    .timer-options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .timer-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(135, 120, 255, 0.3);
+      padding: 12px;
+      border-radius: 14px;
+      color: #cbd5e1;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .timer-chip.active, .timer-chip:hover {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: #00e5ff;
+      color: #00e5ff;
+    }
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Toast */
+    .toast-popup {
+      position: absolute;
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(14, 21, 35, 0.95);
+      border: 1px solid #00e5ff;
+      color: #00e5ff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .toast-popup.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Developer Prototype Configuration Panel Modal */
+    .dev-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .dev-modal-backdrop.open {
+      display: flex;
+    }
+    .dev-panel {
+      background: #0d1524;
+      border: 1.5px solid rgba(0, 229, 255, 0.4);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .dev-panel h2 {
+      color: #00e5ff;
+      font-size: 19px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dev-panel p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+    .dev-section-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .dev-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .status-check {
+      color: #10b981;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .dev-file-input {
+      display: block;
+      width: 100%;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+    .dev-file-input::file-selector-button {
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid #00e5ff;
+      color: #00e5ff;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    .close-dev-btn {
+      background: linear-gradient(90deg, #1fa2ff 0%, #12d8fa 100%);
+      color: #090e17;
+      font-weight: 700;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Prototype Setup Button -->
+  <button class="dev-toggle-btn" id="openDevPanelBtn">
+    <span class="status-badge-dot"></span>
+    ⚙ Prototype Audio Setup
+  </button>
+
+  <div class="prototype-stage">
+    <div class="device-frame">
+      <div class="device-notch"></div>
+      
+      <div class="toast-popup" id="toastNotification">Sound mixing coming soon.</div>
+
+      <div class="screen-container">
+
+        <!-- ==============================================
+             SCREEN 1: HOME (DEFAULT ROOT SCREEN)
+             ============================================== -->
+        <div class="screen active" id="screen-home">
+          <!-- Top Header -->
+          <div class="home-header">
+            <span class="notification-pill">3</span>
+            <div class="brand-logo" style="margin-right: 15px;">
+              att<span class="brand-u">u</span>ne
+            </div>
+          </div>
+
+          <!-- Decorative Wave Ribbon -->
+          <div style="height: 60px; margin-bottom: 6px;">
+            <svg viewBox="0 0 380 70" width="100%" height="70" fill="none">
+              <path d="M 0,35 C 70,70 120,5 200,35 C 280,65 330,5 380,35" stroke="#00d2ff" stroke-width="4" stroke-opacity="0.8" stroke-linecap="round"/>
+              <path d="M 0,35 C 90,5 140,70 210,35 C 280,5 340,65 380,35" stroke="#8a78ff" stroke-width="2.5" stroke-opacity="0.5"/>
+            </svg>
+          </div>
+
+          <!-- Existing SoundSpace -->
+          <div class="section-title">Existing SoundSpace.</div>
+          <div class="hex-cluster">
+            <div class="hex-card hex-1 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-2 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-3 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-4 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-5 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-6 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-7 hex-trigger"><span>Lorem</span></div>
+          </div>
+
+          <!-- Explore your sound -->
+          <div class="section-title">Explore your sound.</div>
+          <div class="hex-explore-cluster">
+            <div class="hex-card hex-e1 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-e2 hex-trigger"><span>Lorem</span></div>
+            <div class="hex-card hex-e3 hex-trigger"><span>Lorem</span></div>
+          </div>
+
+          <!-- Bottom Navbar -->
+          <div class="bottom-navbar">
+            <div class="nav-item active">
+              <div class="nav-icon-smile">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                  <line x1="9" y1="9" x2="9.01" y2="9"/>
+                  <line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+              </div>
+            </div>
+            <div class="nav-item hex-trigger">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="m19 11-8-8-8.5 8.5a2.12 2.12 0 1 0 3 3L14 6l5 5Z"/>
+                <path d="m18 13 4 4"/>
+                <path d="m14 17 4 4"/>
+              </svg>
+            </div>
+            <div class="nav-item hex-trigger">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="12" y1="3" x2="12" y2="21"/>
+                <line x1="6" y1="8" x2="6" y2="16"/>
+                <line x1="18" y1="8" x2="18" y2="16"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ==============================================
+             SCREEN 2: FOCUS / RELAX (Sound Selection Screen 1)
+             ============================================== -->
+        <div class="screen" id="screen-mode">
+          <div class="top-nav">
+            <div class="back-btn" id="modeBackBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="brand-logo">att<span class="brand-u">u</span>ne</div>
+          </div>
+
+          <div class="sub-tagline">Build your Soundscape</div>
+          <h2 class="page-title">How would you like to start?</h2>
+
+          <div class="selection-cards-col">
+            <div class="big-choice-card" id="focusModeCard">
+              <div class="choice-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <rect x="9" y="9" width="6" height="6" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="choice-title">Focus</div>
+              <div class="choice-subtitle">Stay Engaged and Present</div>
+            </div>
+
+            <div class="big-choice-card" id="relaxModeCard">
+              <div class="choice-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M7 13c2.5 3 6.5 3 9 0" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="choice-title">Relax</div>
+              <div class="choice-subtitle">Slow down and decompress</div>
+            </div>
+          </div>
+
+          <button class="cta-button disabled" id="modeStartBtn">Start</button>
+        </div>
+
+
+        <!-- ==============================================
+             SCREEN 3: QUICK START / CHOOSE MY SOUNDS (Sound Selection Screen 2)
+             ============================================== -->
+        <div class="screen" id="screen-entry-type">
+          <div class="top-nav">
+            <div class="back-btn" id="entryTypeBackBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="brand-logo">att<span class="brand-u">u</span>ne</div>
+          </div>
+
+          <div class="sub-tagline">Build your Soundscape</div>
+          <h2 class="page-title">How would you like to start?</h2>
+
+          <div class="selection-cards-col">
+            <div class="big-choice-card" id="quickStartChoiceCard">
+              <div class="choice-icon">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 2"/>
+                  <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+                </svg>
+              </div>
+              <div class="choice-title">Quick Start</div>
+            </div>
+
+            <div class="big-choice-card" id="customSoundsChoiceCard">
+              <div class="choice-icon">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="4" x2="8" y2="20"/>
+                  <line x1="12" y1="2" x2="12" y2="22"/>
+                  <line x1="16" y1="6" x2="16" y2="18"/>
+                  <line x1="4" y1="9" x2="4" y2="15"/>
+                  <line x1="20" y1="10" x2="20" y2="14"/>
+                </svg>
+              </div>
+              <div class="choice-title" style="font-size: 24px; line-height: 1.2;">Choose my<br>Sounds</div>
+            </div>
+          </div>
+
+          <button class="cta-button disabled" id="entryTypeStartBtn">Start</button>
+        </div>
+
+
+        <!-- ==============================================
+             SCREEN 4: DYNAMIC SOUND SELECTION (Sound Selection Screen 3a & 3b)
+             ============================================== -->
+        <div class="screen" id="screen-sound-selection">
+          <div class="top-nav">
+            <div class="back-btn" id="soundSelectBackBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="brand-logo">att<span class="brand-u">u</span>ne</div>
+          </div>
+
+          <div class="sub-tagline">Build your Soundscape</div>
+          <h2 class="page-title">How would you like to start?</h2>
+
+          <div class="sound-categories-list" id="soundCategoriesAccordion">
+            <!-- Dynamically populated from uploaded folders -->
+          </div>
+
+          <button class="cta-button disabled" id="soundSelectStartBtn">Start</button>
+        </div>
+
+
+        <!-- ==============================================
+             SCREEN 5: LISTENING SESSION
+             ============================================== -->
+        <div class="screen" id="screen-listening">
+          <div style="width: 100%;">
+            <div class="top-nav">
+              <div class="back-btn" id="listeningBackBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </div>
+              <div class="brand-logo">att<span class="brand-u">u</span>ne</div>
+            </div>
+
+            <div class="now-listening-label">NOW LISTENING</div>
+            <h1 class="now-listening-title" id="nowListeningTitle">Deep Focus</h1>
+          </div>
+
+          <div class="listening-wave-wrapper" id="listeningWaveWrap">
+            <div class="ambient-glow"></div>
+            <svg viewBox="0 0 380 150" fill="none" style="position: relative; z-index: 2;">
+              <defs>
+                <linearGradient id="listeningWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#2a5298" stop-opacity="0.1"/>
+                  <stop offset="35%" stop-color="#00e5ff" stop-opacity="0.95"/>
+                  <stop offset="65%" stop-color="#0072ff" stop-opacity="0.95"/>
+                  <stop offset="100%" stop-color="#00f2fe" stop-opacity="0.1"/>
+                </linearGradient>
+              </defs>
+              <path d="M 0,75 C 65,130 115,20 190,75 C 265,130 315,20 380,75" stroke="url(#listeningWaveGrad)" stroke-width="6" stroke-linecap="round"/>
+              <path d="M 0,75 C 75,30 125,120 195,75 C 265,30 325,120 380,75" stroke="#00e5ff" stroke-width="2" stroke-opacity="0.7"/>
+            </svg>
+          </div>
+
+          <div style="width: 100%;">
+            <div class="listening-status-row">
+              <div class="pulse-dot-indicator">
+                <span class="pulse-dot" id="listeningPulseDot"></span>
+                <span id="listeningStateLabel">Soundscape Playing</span>
+              </div>
+              <div class="listening-subtext" id="listeningPersonalizedText">Personalized for Focus</div>
+              <div class="timer-countdown-badge" id="timerBadge" style="display: none;">00:00</div>
+            </div>
+
+            <div class="listening-control-bar">
+              <div class="control-side-btn" id="openTimerBtn" title="Set Session Timer">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+
+              <div class="play-pause-circle" id="masterPlayPauseBtn" title="Play / Pause">
+                <svg id="pauseIconSvg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1.5"></rect>
+                  <rect x="14" y="4" width="4" height="16" rx="1.5"></rect>
+                </svg>
+                <svg id="playIconSvg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display: none; margin-left: 2px;">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              </div>
+
+              <div class="control-side-btn" id="mixerBtn" title="Sound Mixer">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer Modal Sheet -->
+        <div class="modal-overlay" id="timerModal">
+          <div class="modal-sheet">
+            <div class="modal-title">Session Timer</div>
+            <div class="timer-options-grid">
+              <div class="timer-chip" data-mins="5">5 min</div>
+              <div class="timer-chip" data-mins="10">10 min</div>
+              <div class="timer-chip" data-mins="15">15 min</div>
+              <div class="timer-chip" data-mins="30">30 min</div>
+              <div class="timer-chip" data-mins="60">60 min</div>
+              <div class="timer-chip" data-mins="0">Off</div>
+            </div>
+            <button class="modal-close-btn" id="closeTimerModalBtn">Close</button>
+          </div>
+        </div>
+
+      </div><!-- /.screen-container -->
+    </div><!-- /.device-frame -->
+  </div><!-- /.prototype-stage -->
+
+
+  <!-- DEVELOPER PROTOTYPE CONFIGURATION MODAL -->
+  <div class="dev-modal-backdrop" id="devModalBackdrop">
+    <div class="dev-panel">
+      <h2>
+        <span>Prototype Audio Setup</span>
+        <button id="closeDevModalCross" style="background:none; border:none; color:#cbd5e1; font-size:24px; cursor:pointer;">&times;</button>
+      </h2>
+      <p>
+        Upload the test folder and MP3 files below. Until custom files are selected, built-in synthesis ensures every layer and preview works instantly without error.
+      </p>
+
+      <div class="dev-section-box">
+        <div class="dev-section-title">
+          <span>Audio Dataset Directory</span>
+          <span class="status-check" id="datasetStatus">Default Categories Ready</span>
+        </div>
+        <p style="margin-bottom: 8px; font-size: 11px;">Select the root <code>audio-dataset</code> directory containing scene subfolders with <code>mp3/</code> files.</p>
+        <input type="file" id="datasetFolderInput" class="dev-file-input" webkitdirectory directory multiple>
+      </div>
+
+      <div class="dev-section-box">
+        <div class="dev-section-title">
+          <span>Focus Frequency (1 MP3)</span>
+          <span class="status-check" id="focusFreqStatus">Built-in Beta Tone</span>
+        </div>
+        <input type="file" id="focusFreqInput" class="dev-file-input" accept="audio/mp3,audio/*">
+      </div>
+
+      <div class="dev-section-box">
+        <div class="dev-section-title">
+          <span>Relax Frequency (1 MP3)</span>
+          <span class="status-check" id="relaxFreqStatus">Built-in Theta Tone</span>
+        </div>
+        <input type="file" id="relaxFreqInput" class="dev-file-input" accept="audio/mp3,audio/*">
+      </div>
+
+      <div class="dev-section-box">
+        <div class="dev-section-title">
+          <span>Quick Start Soundscape (5 MP3s)</span>
+          <span class="status-check" id="quickStartStatus">5/5 Default Layers</span>
+        </div>
+        <input type="file" id="quickStartFilesInput" class="dev-file-input" accept="audio/mp3,audio/*" multiple>
+      </div>
+
+      <button class="close-dev-btn" id="saveAndExitDevBtn">Save & Return to Prototype</button>
+    </div>
+  </div>
+
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* =================================================================
+       GLOBAL STATE & AUDIO ENGINE
+       ================================================================= */
+    const State = {
+      currentScreen: 'screen-home',
+      selectedMode: null, // 'focus' | 'relax'
+      entryType: null,    // 'quick' | 'custom'
+      selectedSoundObjects: new Map(), // id -> sound item
+      activeAudioLayers: [],
+      isPlaying: false,
+      timerSeconds: 0,
+      timerInterval: null,
+      previewNode: null,
+      previewSoundId: null,
+    };
+
+    // Default Sample Dataset (Replaces immediately when uploaded)
+    const AudioDataset = {
+      categories: [
+        {
+          name: 'Amber Footpath',
+          sounds: [
+            { id: 'amber_leaves', name: 'Crunching Leaves', file: null, synthType: 'rustle' },
+            { id: 'amber_wind', name: 'Soft Canopy Wind', file: null, synthType: 'wind' },
+            { id: 'amber_woodpecker', name: 'Distant Forest Birds', file: null, synthType: 'birds' }
+          ]
+        },
+        {
+          name: 'Wetland Chorus',
+          sounds: [
+            { id: 'wetland_reed', name: 'Gentle Reed Breeze', file: null, synthType: 'wind' },
+            { id: 'wetland_stream', name: 'Flowing Stream', file: null, synthType: 'water' },
+            { id: 'wetland_crickets', name: 'Evening Chorus', file: null, synthType: 'crickets' }
+          ]
+        },
+        {
+          name: 'Highland Mist',
+          sounds: [
+            { id: 'mist_steady_rain', name: 'Steady Mountain Rain', file: null, synthType: 'rain' },
+            { id: 'mist_distant_thunder', name: 'Distant Rolling Thunder', file: null, synthType: 'thunder' },
+            { id: 'mist_warm_drone', name: 'Atmospheric Drone', file: null, synthType: 'drone' }
+          ]
+        }
+      ],
+      focusFrequencyFile: null,
+      relaxFrequencyFile: null,
+      quickStartFiles: []
+    };
+
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Procedural Fallback Engine
+    function createSynthLayer(ctx, type) {
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99 * b0 + white * 0.05;
+        b1 = 0.95 * b1 + white * 0.1;
+        output[i] = (b0 + b1) * 0.15;
+      }
+
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      const gainNode = ctx.createGain();
+
+      if (type === 'wind') {
+        filter.type = 'bandpass';
+        filter.frequency.value = 450;
+        filter.Q.value = 1.8;
+        gainNode.gain.value = 0.3;
+      } else if (type === 'water') {
+        filter.type = 'lowpass';
+        filter.frequency.value = 700;
+        gainNode.gain.value = 0.28;
+      } else if (type === 'drone') {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = 110;
+        gainNode.gain.value = 0.18;
+        osc.connect(gainNode);
+        osc.start();
+        return { source: osc, gain: gainNode, isOsc: true };
+      } else {
+        filter.type = 'lowpass';
+        filter.frequency.value = 1100;
+        gainNode.gain.value = 0.25;
+      }
+
+      whiteNoise.connect(filter);
+      filter.connect(gainNode);
+      whiteNoise.start();
+
+      return { source: whiteNoise, gain: gainNode, isOsc: false };
+    }
+
+    // Procedural Frequency Generator (Focus: Beta ~14Hz / Relax: Theta ~6Hz)
+    function createFrequencyTone(ctx, mode) {
+      const baseFreq = mode === 'focus' ? 220 : 136.1;
+      const diff = mode === 'focus' ? 14 : 6;
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.value = baseFreq;
+      osc2.frequency.value = baseFreq + diff;
+      gain.gain.value = 0.15;
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      osc1.start();
+      osc2.start();
+
+      return { sources: [osc1, osc2], gain };
+    }
+
+    // Play a single audio layer (either from uploaded MP3 file or built-in generator)
+    function playAudioLayer(fileOrItem, isFrequency = false, mode = 'focus') {
+      const ctx = getAudioContext();
+
+      if (fileOrItem && fileOrItem instanceof File) {
+        // Uploaded MP3 file
+        const audio = new Audio();
+        audio.src = URL.createObjectURL(fileOrItem);
+        audio.loop = true;
+        const source = ctx.createMediaElementSource(audio);
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = isFrequency ? 0.35 : 0.65;
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        audio.play().catch(e => console.warn(e));
+
+        return {
+          stop: () => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.src = '';
+          },
+          pause: () => audio.pause(),
+          resume: () => audio.play().catch(e => {})
+        };
+      } else if (fileOrItem && fileOrItem.file instanceof File) {
+        // Sound object with real file
+        return playAudioLayer(fileOrItem.file, false, mode);
+      } else {
+        // Procedural Audio Fallback
+        if (isFrequency) {
+          const freq = createFrequencyTone(ctx, mode);
+          freq.gain.connect(ctx.destination);
+          return {
+            stop: () => freq.sources.forEach(s => { try { s.stop(); } catch(e){} }),
+            pause: () => { freq.gain.gain.value = 0; },
+            resume: () => { freq.gain.gain.value = 0.15; }
+          };
+        } else {
+          const synth = createSynthLayer(ctx, (fileOrItem && fileOrItem.synthType) || 'rain');
+          synth.gain.connect(ctx.destination);
+          return {
+            stop: () => { try { synth.source.stop(); } catch(e){} },
+            pause: () => { synth.gain.gain.value = 0; },
+            resume: () => { synth.gain.gain.value = 0.25; }
+          };
+        }
+      }
+    }
+
+
+    /* =================================================================
+       ROUTING & NAVIGATION
+       ================================================================= */
+    function navigateTo(screenId) {
+      stopPreview();
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+        State.currentScreen = screenId;
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toastNotification');
+      t.textContent = msg;
+      t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 2400);
+    }
+
+    /* =================================================================
+       SCREEN 1 — HOME
+       ================================================================= */
+    // Clicking ANY hexagon begins the flow
+    document.querySelectorAll('.hex-trigger').forEach(hex => {
+      hex.addEventListener('click', () => {
+        navigateTo('screen-mode');
+      });
+    });
+
+    /* =================================================================
+       SCREEN 2 — FOCUS / RELAX
+       ================================================================= */
+    const focusCard = document.getElementById('focusModeCard');
+    const relaxCard = document.getElementById('relaxModeCard');
+    const modeStartBtn = document.getElementById('modeStartBtn');
+
+    function selectMode(mode) {
+      State.selectedMode = mode;
+      focusCard.classList.toggle('selected', mode === 'focus');
+      relaxCard.classList.toggle('selected', mode === 'relax');
+      modeStartBtn.classList.remove('disabled');
+    }
+
+    focusCard.addEventListener('click', () => selectMode('focus'));
+    relaxCard.addEventListener('click', () => selectMode('relax'));
+
+    document.getElementById('modeBackBtn').addEventListener('click', () => {
+      navigateTo('screen-home');
+    });
+
+    modeStartBtn.addEventListener('click', () => {
+      if (!State.selectedMode) return;
+      navigateTo('screen-entry-type');
+    });
+
+    /* =================================================================
+       SCREEN 3 — QUICK START / CHOOSE MY SOUNDS
+       ================================================================= */
+    const quickStartCard = document.getElementById('quickStartChoiceCard');
+    const customSoundsCard = document.getElementById('customSoundsChoiceCard');
+    const entryTypeStartBtn = document.getElementById('entryTypeStartBtn');
+
+    function selectEntryType(type) {
+      State.entryType = type;
+      quickStartCard.classList.toggle('selected', type === 'quick');
+      customSoundsCard.classList.toggle('selected', type === 'custom');
+      entryTypeStartBtn.classList.remove('disabled');
+    }
+
+    quickStartCard.addEventListener('click', () => selectEntryType('quick'));
+    customSoundsCard.addEventListener('click', () => selectEntryType('custom'));
+
+    document.getElementById('entryTypeBackBtn').addEventListener('click', () => {
+      navigateTo('screen-mode');
+    });
+
+    entryTypeStartBtn.addEventListener('click', () => {
+      if (!State.entryType) return;
+      if (State.entryType === 'quick') {
+        startQuickStartSoundscape();
+      } else {
+        renderSoundSelectionUI();
+        navigateTo('screen-sound-selection');
+      }
+    });
+
+    /* =================================================================
+       SCREEN 4 — DYNAMIC SOUND SELECTION
+       ================================================================= */
+    const categoriesAccordionEl = document.getElementById('soundCategoriesAccordion');
+    const soundSelectStartBtn = document.getElementById('soundSelectStartBtn');
+
+    function updateSoundSelectionStartButton() {
+      if (State.selectedSoundObjects.size > 0) {
+        soundSelectStartBtn.classList.remove('disabled');
+      } else {
+        soundSelectStartBtn.classList.add('disabled');
+      }
+    }
+
+    function renderSoundSelectionUI() {
+      categoriesAccordionEl.innerHTML = '';
+
+      AudioDataset.categories.forEach((cat, index) => {
+        const card = document.createElement('div');
+        card.className = 'accordion-card' + (index === 0 ? ' expanded' : '');
+
+        card.innerHTML = `
+          <div class="accordion-header">
+            <div class="header-left">
+              <div class="category-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-8"/><path d="M5 8c0 4 7 6 7 6s7-2 7-6a7 7 0 0 0-14 0Z"/></svg>
+              </div>
+              <div class="cat-name">${cat.name}</div>
+            </div>
+            <div class="chevron-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="accordion-content"></div>
+        `;
+
+        const contentEl = card.querySelector('.accordion-content');
+
+        cat.sounds.forEach(sound => {
+          const isSelected = State.selectedSoundObjects.has(sound.id);
+          const row = document.createElement('div');
+          row.className = 'sound-item-row';
+          row.innerHTML = `
+            <div class="sound-row-left" data-sound-id="${sound.id}">
+              <div class="checkbox-bubble ${isSelected ? 'checked' : ''}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#041221" stroke-width="3.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <span class="sound-label">${sound.name}</span>
+            </div>
+            <button class="preview-play-btn" data-preview-id="${sound.id}" title="Preview Sound">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </button>
+          `;
+
+          // Checkbox toggle
+          const rowLeft = row.querySelector('.sound-row-left');
+          rowLeft.addEventListener('click', () => {
+            const bubble = rowLeft.querySelector('.checkbox-bubble');
+            if (State.selectedSoundObjects.has(sound.id)) {
+              State.selectedSoundObjects.delete(sound.id);
+              bubble.classList.remove('checked');
+            } else {
+              State.selectedSoundObjects.set(sound.id, sound);
+              bubble.classList.add('checked');
+            }
+            updateSoundSelectionStartButton();
+          });
+
+          // Preview toggle
+          const previewBtn = row.querySelector('.preview-play-btn');
+          previewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePreview(sound, previewBtn);
+          });
+
+          contentEl.appendChild(row);
+        });
+
+        // Toggle Accordion expansion
+        card.querySelector('.accordion-header').addEventListener('click', () => {
+          card.classList.toggle('expanded');
+        });
+
+        categoriesAccordionEl.appendChild(card);
+      });
+
+      updateSoundSelectionStartButton();
+    }
+
+    // Audio Preview
+    function togglePreview(sound, btn) {
+      if (State.previewSoundId === sound.id) {
+        stopPreview();
+        return;
+      }
+      stopPreview();
+
+      State.previewSoundId = sound.id;
+      btn.classList.add('playing');
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16"></rect><rect x="15" y="4" width="4" height="16"></rect></svg>`;
+
+      State.previewNode = playAudioLayer(sound.file || sound, false);
+    }
+
+    function stopPreview() {
+      if (State.previewNode) {
+        State.previewNode.stop();
+        State.previewNode = null;
+      }
+      if (State.previewSoundId) {
+        const btn = document.querySelector(`[data-preview-id="${State.previewSoundId}"]`);
+        if (btn) {
+          btn.classList.remove('playing');
+          btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+        }
+        State.previewSoundId = null;
+      }
+    }
+
+    document.getElementById('soundSelectBackBtn').addEventListener('click', () => {
+      stopPreview();
+      navigateTo('screen-entry-type');
+    });
+
+    soundSelectStartBtn.addEventListener('click', () => {
+      if (State.selectedSoundObjects.size === 0) return;
+      stopPreview();
+      startCustomSoundscape();
+    });
+
+    /* =================================================================
+       SCREEN 5 — LISTENING SESSION
+       ================================================================= */
+    function stopAllActiveAudio() {
+      State.activeAudioLayers.forEach(l => l.stop());
+      State.activeAudioLayers = [];
+      State.isPlaying = false;
+      clearInterval(State.timerInterval);
+      document.getElementById('timerBadge').style.display = 'none';
+    }
+
+    function initListeningScreen(title, mode) {
+      stopAllActiveAudio();
+
+      document.getElementById('nowListeningTitle').textContent = title;
+      document.getElementById('listeningPersonalizedText').textContent =
+        `Personalized for ${mode === 'focus' ? 'Focus' : 'Relax'}`;
+
+      // 1. Add Focus OR Relax Frequency Layer
+      const freqFile = mode === 'focus' ? AudioDataset.focusFrequencyFile : AudioDataset.relaxFrequencyFile;
+      const freqLayer = playAudioLayer(freqFile, true, mode);
+      State.activeAudioLayers.push(freqLayer);
+
+      State.isPlaying = true;
+      updatePlayerUI();
+
+      navigateTo('screen-listening');
+    }
+
+    // Quick Start Flow: 5 files + Focus/Relax frequency
+    function startQuickStartSoundscape() {
+      const mode = State.selectedMode || 'focus';
+      const title = mode === 'focus' ? 'Deep Focus' : 'Deep Relax';
+      initListeningScreen(title, mode);
+
+      if (AudioDataset.quickStartFiles && AudioDataset.quickStartFiles.length >= 5) {
+        for (let i = 0; i < 5; i++) {
+          const layer = playAudioLayer(AudioDataset.quickStartFiles[i], false);
+          State.activeAudioLayers.push(layer);
+        }
+      } else {
+        ['wind', 'water', 'rain', 'thunder', 'drone'].forEach(type => {
+          const layer = playAudioLayer({ synthType: type }, false);
+          State.activeAudioLayers.push(layer);
+        });
+      }
+    }
+
+    // Choose My Sounds Flow: All selected sounds + Focus/Relax frequency
+    function startCustomSoundscape() {
+      const mode = State.selectedMode || 'focus';
+      const title = mode === 'focus' ? 'Focus Soundscape' : 'Relax Soundscape';
+      initListeningScreen(title, mode);
+
+      State.selectedSoundObjects.forEach(soundItem => {
+        const layer = playAudioLayer(soundItem.file || soundItem, false);
+        State.activeAudioLayers.push(layer);
+      });
+    }
+
+    // Player Controls
+    const masterPlayPauseBtn = document.getElementById('masterPlayPauseBtn');
+    const pauseIconSvg = document.getElementById('pauseIconSvg');
+    const playIconSvg = document.getElementById('playIconSvg');
+    const listeningPulseDot = document.getElementById('listeningPulseDot');
+    const listeningStateLabel = document.getElementById('listeningStateLabel');
+    const listeningWaveWrap = document.getElementById('listeningWaveWrap');
+
+    function updatePlayerUI() {
+      if (State.isPlaying) {
+        pauseIconSvg.style.display = 'block';
+        playIconSvg.style.display = 'none';
+        listeningPulseDot.style.background = '#00e5ff';
+        listeningPulseDot.style.animation = 'pulseAnimation 2s infinite ease-in-out';
+        listeningStateLabel.textContent = 'Soundscape Playing';
+        listeningWaveWrap.classList.remove('paused');
+      } else {
+        pauseIconSvg.style.display = 'none';
+        playIconSvg.style.display = 'block';
+        listeningPulseDot.style.background = '#64748b';
+        listeningPulseDot.style.animation = 'none';
+        listeningStateLabel.textContent = 'Paused';
+        listeningWaveWrap.classList.add('paused');
+      }
+    }
+
+    masterPlayPauseBtn.addEventListener('click', () => {
+      if (State.isPlaying) {
+        State.activeAudioLayers.forEach(l => l.pause());
+        State.isPlaying = false;
+      } else {
+        getAudioContext();
+        State.activeAudioLayers.forEach(l => l.resume());
+        State.isPlaying = true;
+      }
+      updatePlayerUI();
+    });
+
+    document.getElementById('listeningBackBtn').addEventListener('click', () => {
+      stopAllActiveAudio();
+      if (State.entryType === 'quick') {
+        navigateTo('screen-entry-type');
+      } else {
+        navigateTo('screen-sound-selection');
+      }
+    });
+
+    document.getElementById('mixerBtn').addEventListener('click', () => {
+      showToast('Sound mixing coming soon.');
+    });
+
+    /* =================================================================
+       TIMER MODAL
+       ================================================================= */
+    const timerModal = document.getElementById('timerModal');
+    const openTimerBtn = document.getElementById('openTimerBtn');
+    const closeTimerModalBtn = document.getElementById('closeTimerModalBtn');
+    const timerBadge = document.getElementById('timerBadge');
+
+    openTimerBtn.addEventListener('click', () => timerModal.classList.add('open'));
+    closeTimerModalBtn.addEventListener('click', () => timerModal.classList.remove('open'));
+
+    document.querySelectorAll('.timer-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.timer-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        const mins = parseInt(chip.getAttribute('data-mins'), 10);
+        clearInterval(State.timerInterval);
+
+        if (mins === 0) {
+          timerBadge.style.display = 'none';
+          showToast('Timer turned off');
+        } else {
+          State.timerSeconds = mins * 60;
+          timerBadge.style.display = 'inline-block';
+          updateTimerDisplay();
+
+          State.timerInterval = setInterval(() => {
+            if (State.isPlaying && State.timerSeconds > 0) {
+              State.timerSeconds--;
+              updateTimerDisplay();
+              if (State.timerSeconds <= 0) {
+                clearInterval(State.timerInterval);
+                stopAllActiveAudio();
+                updatePlayerUI();
+                showToast('Session finished!');
+              }
+            }
+          }, 1000);
+
+          showToast(`Timer set for ${mins} minutes`);
+        }
+        timerModal.classList.remove('open');
+      });
+    });
+
+    function updateTimerDisplay() {
+      const m = Math.floor(State.timerSeconds / 60);
+      const s = State.timerSeconds % 60;
+      timerBadge.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    /* =================================================================
+       DEV CONFIGURATION PANEL
+       ================================================================= */
+    const devModal = document.getElementById('devModalBackdrop');
+    document.getElementById('openDevPanelBtn').addEventListener('click', () => devModal.classList.add('open'));
+    document.getElementById('closeDevModalCross').addEventListener('click', () => devModal.classList.remove('open'));
+    document.getElementById('saveAndExitDevBtn').addEventListener('click', () => {
+      devModal.classList.remove('open');
+      if (State.currentScreen === 'screen-sound-selection') {
+        renderSoundSelectionUI();
+      }
+      showToast('Prototype audio ready.');
+    });
+
+    // Dataset Directory Parser: audio-dataset/[scene]/mp3/[file].mp3
+    document.getElementById('datasetFolderInput').addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      const sceneMap = new Map();
+
+      files.forEach(file => {
+        if (!file.name.toLowerCase().endsWith('.mp3')) return;
+        const parts = file.webkitRelativePath.split('/');
+        
+        let sceneName = 'Uploaded Scene';
+        if (parts.length >= 3) {
+          sceneName = parts[1] === 'mp3' ? parts[0] : parts[parts.length - 3] || parts[0];
+        }
+
+        if (!sceneMap.has(sceneName)) {
+          sceneMap.set(sceneName, []);
+        }
+
+        const cleanName = file.name
+          .replace(/\.mp3$/i, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase());
+
+        sceneMap.get(sceneName).push({
+          id: file.name + '_' + Math.random(),
+          name: cleanName,
+          file: file,
+          synthType: 'rain'
+        });
+      });
+
+      if (sceneMap.size > 0) {
+        AudioDataset.categories = [];
+        sceneMap.forEach((soundList, sceneName) => {
+          AudioDataset.categories.push({
+            name: sceneName,
+            sounds: soundList
+          });
+        });
+
+        // Reset previous selections to avoid stale IDs
+        State.selectedSoundObjects.clear();
+        document.getElementById('datasetStatus').textContent = `Loaded (${sceneMap.size} scenes)`;
+      }
+    });
+
+    // Focus MP3
+    document.getElementById('focusFreqInput').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        AudioDataset.focusFrequencyFile = e.target.files[0];
+        document.getElementById('focusFreqStatus').textContent = 'Ready (Uploaded MP3)';
+      }
+    });
+
+    // Relax MP3
+    document.getElementById('relaxFreqInput').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        AudioDataset.relaxFrequencyFile = e.target.files[0];
+        document.getElementById('relaxFreqStatus').textContent = 'Ready (Uploaded MP3)';
+      }
+    });
+
+    // Quick Start (5 MP3s)
+    document.getElementById('quickStartFilesInput').addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        AudioDataset.quickStartFiles = files;
+        document.getElementById('quickStartStatus').textContent = `${files.length}/5 Ready`;
+      }
+    });
+
+    // Boot: Ensure Home is active and ready
+    navigateTo('screen-home');
+  </script>
+</body>
+</html>
